@@ -199,6 +199,13 @@ void Renderer::Class0310()
 	glGenBuffers(1, &m_testVBO);	// get Buffer Object ID
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);	// bind to array buffer
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+
+
+	float vertices2[] = { -1.f, -1.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f, 0.f };	// CPU Memory
+
+	glGenBuffers(1, &m_testVBO1);	// get Buffer Object ID
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);	// bind to array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
 	
 	// * GL_STATIC 과 GL_DYNAMIC 의 차이 
 	//	- STATIC: 현재 bind 를 해서 GPU 로 넘어간 상태, CPU 에서는 해당 정보를 유지하지 않음. 날려버림.
@@ -218,19 +225,17 @@ void Renderer::Class0310_Render()
 	glUseProgram(m_SolidRectShader);
 
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Trans"), 0, 0, 0, 1);
-
-	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Trans2"), 1, 1, 0, 1);
-
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Color"), 1, 1, 1, 1);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
-
 	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
+	// 어트리뷰트 각각은 독립적으로 실행된다. 0번 어트리뷰트, 1번 어트리뷰트 각각 0~3개를 가지고 온다는 뜻
 }
