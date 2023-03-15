@@ -194,6 +194,8 @@ void Renderer::GetGLPosition(float x, float y, float *newX, float *newY)
 void Renderer::Class0310()
 {
 	// PPT 내용
+	// 데이터를 준비하는 부분이다. 
+	// 버텍스 버퍼는 한 번만 만든다.
 	float vertices[] = { 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 1.f, 0.f };	// CPU Memory
 
 	glGenBuffers(1, &m_testVBO);	// get Buffer Object ID
@@ -221,6 +223,10 @@ void Renderer::Class0310()
 
 void Renderer::Class0310_Render()
 {
+	g_time += 0.016;
+	if (g_time > 1.f)
+		g_time = 0.5f;
+
 	//Program select
 	glUseProgram(m_SolidRectShader);
 
@@ -239,6 +245,11 @@ void Renderer::Class0310_Render()
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);
 	glVertexAttribPointer(attribLoc_Position1, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
+	int uniformLoc_Scale = -1;
+	uniformLoc_Scale = glGetUniformLocation(m_SolidRectShader, "u_Scale");
+	// 함수의 형태는 glGetUniformLocation 과 glGetAttribLocation 이 비슷하기 때문에 오류 나기 쉽다. 주의하기.
+	glUniform1f(uniformLoc_Scale, g_time); // glUniform + 인자 개수 + 자료형 형태인 함수명
+	// 매 프레임마다 0.5f 의 인자를 바꿀 수가 있다. 들어가는 값을 연속적으로 바꾸어보자.
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
 	// 어트리뷰트 각각은 독립적으로 실행된다. 0번 어트리뷰트, 1번 어트리뷰트 각각 0~3개를 가지고 온다는 뜻

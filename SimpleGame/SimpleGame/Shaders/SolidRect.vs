@@ -8,10 +8,14 @@ in vec3 a_Position1;
 // layout 안 쓰려면 glGetAttribLocation 코드를 써라.
 uniform vec4 u_Trans;
 
+uniform float u_Scale;
+
 void main()
 {
 	vec4 newPosition;
-	newPosition.xy = (a_Position.xy + a_Position1.xy ) *u_Trans.w + u_Trans.xy;
+	newPosition.xy = u_Scale * (a_Position.xy + a_Position1.xy ) *u_Trans.w + u_Trans.xy;
+	// x끼리 더해진 다음 u_Scale에 곱해지고, y끼리 더해진다음 u_Scale에 곱해진다. 
+	// 그 다음 u_Treans.w는 스칼라 연산처럼 된다. 
 	newPosition.z = 0;
 	newPosition.w= 1;
 	gl_Position = newPosition;

@@ -36,5 +36,7 @@ private:
 
 	GLuint m_testVBO = 0;
 	GLuint m_testVBO1 = 1;
+
+	float g_time = 0.5f;
 };
 
