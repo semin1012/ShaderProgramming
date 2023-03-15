@@ -227,13 +227,17 @@ void Renderer::Class0310_Render()
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Trans"), 0, 0, 0, 1);
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Color"), 1, 1, 1, 1);
 
+	int attribLoc_Position = -1;
+	attribLoc_Position = glGetAttribLocation(m_SolidRectShader, "a_Position");	// openGL 에서 자동으로 받는 코드
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
+	glVertexAttribPointer(m_SolidRectShader, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
+	int attribLoc_Position1 = -1;
+	attribLoc_Position1 = glGetAttribLocation(m_SolidRectShader, "a_Position");	// openGL 에서 자동으로 받는 코드
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
+	glVertexAttribPointer(attribLoc_Position1, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
