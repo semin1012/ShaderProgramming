@@ -20,7 +20,8 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 
 	//Load shaders
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
-	
+	m_ParticleShader = CompileShaders("./Shaders/Particle.vs", "./Shaders/Particle.fs");
+
 	//Create VBOs
 	CreateVertexBufferObjects();
 
@@ -29,7 +30,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 		m_Initialized = true;
 	}
 
-
+	CreateParticle();
 }
 
 bool Renderer::IsInitialized()
@@ -49,6 +50,42 @@ void Renderer::CreateVertexBufferObjects()
 	glGenBuffers(1, &m_VBORect);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect), rect, GL_STATIC_DRAW);
+
+	// PPT 내용
+	// 데이터를 준비하는 부분이다. 
+	// 버텍스 버퍼는 한 번만 만든다.
+	float vertices[] = { 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 1.f, 0.f };	// CPU Memory
+
+	glGenBuffers(1, &m_testVBO);	// get Buffer Object ID
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);	// bind to array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+
+
+	float vertices2[] = { -1.f, -1.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f, 0.f };	// CPU Memory
+
+	glGenBuffers(1, &m_testVBO1);	// get Buffer Object ID
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);	// bind to array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+
+	float vecticesColor[] = {
+		1.f, 0.f, 0.f, 1.f,
+		0.f, 1.f, 0.f, 1.f,
+		0.f, 0.f, 1.f, 1.f };	// CPU Memory
+
+	glGenBuffers(1, &m_testVBOColor);	// get Buffer Object ID
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBOColor);	// bind to array buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vecticesColor), vecticesColor, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+
+	// * GL_STATIC 과 GL_DYNAMIC 의 차이 
+	//	- STATIC: 현재 bind 를 해서 GPU 로 넘어간 상태, CPU 에서는 해당 정보를 유지하지 않음. 날려버림.
+	//	- DYNAMIC: bind 를 사용해 GPU 로 넘겨도 CPU 에서 해당 정보를 날려 버리지 않음. 언제든지 바뀔 수 있어서(다이나믹)
+	//			   바뀌는 것을 감지해서 자동 업데이트 해 주도록 함.
+
+	//int size = 4000000000000;
+	//float* temp;
+	//temp = new float[size];
+	//memset(temp, 1, sizeof(float) * size);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, temp, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
 }
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -193,43 +230,59 @@ void Renderer::GetGLPosition(float x, float y, float *newX, float *newY)
 
 void Renderer::Class0310()
 {
-	// PPT 내용
-	// 데이터를 준비하는 부분이다. 
-	// 버텍스 버퍼는 한 번만 만든다.
-	float vertices[] = { 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 1.f, 0.f };	// CPU Memory
+}
 
-	glGenBuffers(1, &m_testVBO);	// get Buffer Object ID
-	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO);	// bind to array buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+void Renderer::CreateParticle()
+{
+	float centerX, centerY;
+	centerX = 0.f;
+	centerY = 0.f;
+	float size = 0.5f;
+	int particleCount = 1;
+	m_ParticleVerticesCount = particleCount * 6;
+	int floatCount = particleCount * 6 * 3;
+	float* vertices = NULL;
+	vertices = new float[floatCount];
 
+	int index = 0;
+	vertices[index] = centerX - size; index++;
+	vertices[index] = centerY + size; index++;
+	vertices[index] = 0.f; index++;	// z 축은 안 쓰기 때문에 0.f;
 
-	float vertices2[] = { -1.f, -1.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f, 0.f };	// CPU Memory
+	vertices[index] = centerX - size; index++;
+	vertices[index] = centerY - size; index++;
+	vertices[index] = 0.f; index++;
 
-	glGenBuffers(1, &m_testVBO1);	// get Buffer Object ID
-	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);	// bind to array buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
-	
-	// * GL_STATIC 과 GL_DYNAMIC 의 차이 
-	//	- STATIC: 현재 bind 를 해서 GPU 로 넘어간 상태, CPU 에서는 해당 정보를 유지하지 않음. 날려버림.
-	//	- DYNAMIC: bind 를 사용해 GPU 로 넘겨도 CPU 에서 해당 정보를 날려 버리지 않음. 언제든지 바뀔 수 있어서(다이나믹)
-	//			   바뀌는 것을 감지해서 자동 업데이트 해 주도록 함.
+	vertices[index] = centerX + size; index++;
+	vertices[index] = centerY + size; index++;
+	vertices[index] = 0.f; index++;
 
-	//int size = 4000000000000;
-	//float* temp;
-	//temp = new float[size];
-	//memset(temp, 1, sizeof(float) * size);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * size, temp, GL_STATIC_DRAW);	// GL_ARRAY_BUFFER 타입인 애를 찾는다는 뜻
+	// 두번째 삼각형
+	vertices[index] = centerX + size; index++;
+	vertices[index] = centerY + size; index++;
+	vertices[index] = 0.f; index++;
+
+	vertices[index] = centerX - size; index++;
+	vertices[index] = centerY - size; index++;
+	vertices[index] = 0.f; index++;
+
+	vertices[index] = centerX + size; index++;
+	vertices[index] = centerY - size; index++;
+	vertices[index] = 0.f; index++;
+
+	glGenBuffers(1, &m_ParticleVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCount, vertices, GL_STATIC_DRAW);
 }
 
 void Renderer::Class0310_Render()
 {
-	g_time += 0.016;
+	g_time += 0.0001;
 	if (g_time > 1.f)
-		g_time = 0.5f;
+		g_time = 1.0f;
 
 	//Program select
 	glUseProgram(m_SolidRectShader);
-
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Trans"), 0, 0, 0, 1);
 	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Color"), 1, 1, 1, 1);
 
@@ -245,6 +298,12 @@ void Renderer::Class0310_Render()
 	glBindBuffer(GL_ARRAY_BUFFER, m_testVBO1);
 	glVertexAttribPointer(attribLoc_Position1, 3, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
 
+	int attribLoc_Color = -1;
+	attribLoc_Color = glGetAttribLocation(m_SolidRectShader, "a_Color");	// openGL 에서 자동으로 받는 코드
+	glEnableVertexAttribArray(attribLoc_Color);
+	glBindBuffer(GL_ARRAY_BUFFER, m_testVBOColor);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);	// float 데이터 3 개씩 바로 읽으면 된다는 뜻
+
 	int uniformLoc_Scale = -1;
 	uniformLoc_Scale = glGetUniformLocation(m_SolidRectShader, "u_Scale");
 	// 함수의 형태는 glGetUniformLocation 과 glGetAttribLocation 이 비슷하기 때문에 오류 나기 쉽다. 주의하기.
@@ -253,4 +312,19 @@ void Renderer::Class0310_Render()
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
 	// 어트리뷰트 각각은 독립적으로 실행된다. 0번 어트리뷰트, 1번 어트리뷰트 각각 0~3개를 가지고 온다는 뜻
+}
+
+void Renderer::DrawParticleEffect()
+{
+	//Program select
+	int shaderProgram = m_ParticleShader;
+	glUseProgram(shaderProgram);
+
+	int attribLoc_Position = -1;
+	attribLoc_Position = glGetAttribLocation(shaderProgram, "a_Position");	
+	glEnableVertexAttribArray(attribLoc_Position);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 }
