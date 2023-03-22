@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Renderer.h"
+#include <random>
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
 {
@@ -29,8 +30,8 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	{
 		m_Initialized = true;
 	}
-
-	CreateParticle();
+	
+	CreateParticle(1000);
 }
 
 bool Renderer::IsInitialized()
@@ -232,47 +233,95 @@ void Renderer::Class0310()
 {
 }
 
-void Renderer::CreateParticle()
+void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	centerX = 0.f;
-	centerY = 0.f;
-	float size = 0.5f;
-	int particleCount = 1;
+	float size = 0.007f;
+	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;
 	float* vertices = NULL;
 	vertices = new float[floatCount];
-
 	int index = 0;
-	vertices[index] = centerX - size; index++;
-	vertices[index] = centerY + size; index++;
-	vertices[index] = 0.f; index++;	// z 축은 안 쓰기 때문에 0.f;
 
-	vertices[index] = centerX - size; index++;
-	vertices[index] = centerY - size; index++;
-	vertices[index] = 0.f; index++;
+	// 포지션
+	for (int i = 0; i < numParticles; i++) {
+		centerX = 0.f; // ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		centerY = 0.f; //((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
 
-	vertices[index] = centerX + size; index++;
-	vertices[index] = centerY + size; index++;
-	vertices[index] = 0.f; index++;
+		vertices[index] = centerX - size; index++;
+		vertices[index] = centerY + size; index++;
+		vertices[index] = 0.f; index++;	// z 축은 안 쓰기 때문에 0.f;
 
-	// 두번째 삼각형
-	vertices[index] = centerX + size; index++;
-	vertices[index] = centerY + size; index++;
-	vertices[index] = 0.f; index++;
+		vertices[index] = centerX - size; index++;
+		vertices[index] = centerY - size; index++;
+		vertices[index] = 0.f; index++;
 
-	vertices[index] = centerX - size; index++;
-	vertices[index] = centerY - size; index++;
-	vertices[index] = 0.f; index++;
+		vertices[index] = centerX + size; index++;
+		vertices[index] = centerY + size; index++;
+		vertices[index] = 0.f; index++;
 
-	vertices[index] = centerX + size; index++;
-	vertices[index] = centerY - size; index++;
-	vertices[index] = 0.f; index++;
+		// 두번째 삼각형
+		vertices[index] = centerX + size; index++;
+		vertices[index] = centerY + size; index++;
+		vertices[index] = 0.f; index++;
+
+		vertices[index] = centerX - size; index++;
+		vertices[index] = centerY - size; index++;
+		vertices[index] = 0.f; index++;
+
+		vertices[index] = centerX + size; index++;
+		vertices[index] = centerY - size; index++;
+		vertices[index] = 0.f; index++;
+	}
 
 	glGenBuffers(1, &m_ParticleVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCount, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* floatCount, vertices, GL_STATIC_DRAW);
+
+	// 속도
+	float* verticesVel = NULL;
+	verticesVel = new float[floatCount];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {
+		centerX = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		centerY = ((float)rand() / (float)RAND_MAX) * 2.f; // - 1.f;
+
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+
+		// 두번째 삼각형
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+
+		verticesVel[index] = centerX; index++;
+		verticesVel[index] = centerY; index++;
+		verticesVel[index] = 0;		  index++;
+	}
+
+	glGenBuffers(1, &m_ParticleVelVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCount, verticesVel, GL_STATIC_DRAW);
+
+	delete vertices;
+	delete verticesVel;
 }
 
 void Renderer::Class0310_Render()
@@ -317,14 +366,25 @@ void Renderer::Class0310_Render()
 void Renderer::DrawParticleEffect()
 {
 	//Program select
-	int shaderProgram = m_ParticleShader;
-	glUseProgram(shaderProgram);
+	int program = m_ParticleShader;
+	glUseProgram(program);
 
 	int attribLoc_Position = -1;
-	attribLoc_Position = glGetAttribLocation(shaderProgram, "a_Position");	
+	attribLoc_Position = glGetAttribLocation(program, "a_Position");
 	glEnableVertexAttribArray(attribLoc_Position);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
 	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int attribLoc_Vel = -1;
+	attribLoc_Vel = glGetAttribLocation(program, "a_Vel");
+	glEnableVertexAttribArray(attribLoc_Vel);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
+	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int uniformLoc_Time = -1;
+	uniformLoc_Time = glGetUniformLocation(program, "u_Time");
+	glUniform1f(uniformLoc_Time, g_time);
+	g_time += 0.0002;
 
 	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 }

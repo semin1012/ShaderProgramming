@@ -28,8 +28,9 @@ private:
 	void Class0310();
 
 	// Particle VBO
-	void CreateParticle();
+	void CreateParticle(int numParticles);
 	GLuint m_ParticleVBO = -1;
+	GLuint m_ParticleVelVBO = -1;
 	GLuint m_ParticleShader = -1;
 	GLuint m_ParticleVerticesCount = -1;
 
@@ -45,6 +46,6 @@ private:
 	GLuint m_testVBO1 = 0;
 	GLuint m_testVBOColor = 0;
 
-	float g_time = 0.5f;
+	float g_time = 0.f;
 };
 
