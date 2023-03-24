@@ -31,6 +31,8 @@ private:
 	void CreateParticle(int numParticles);
 	GLuint m_ParticleVBO = -1;
 	GLuint m_ParticleVelVBO = -1;
+	GLuint m_ParticleEmitTimeVBO = -1;
+	GLuint m_ParticleLifeTimeVBO = -1;
 	GLuint m_ParticleShader = -1;
 	GLuint m_ParticleVerticesCount = -1;
 
