@@ -36,6 +36,13 @@ private:
 	GLuint m_ParticleShader = -1;
 	GLuint m_ParticleVerticesCount = -1;
 
+	// Sin
+	GLuint m_SinVBO = -1;
+	GLuint m_SinPeriod = -1;
+	GLuint m_SinAmp = -1;
+	GLuint m_ParticleValue = -1;
+	
+
 	bool m_Initialized = false;
 	
 	unsigned int m_WindowSizeX = 0;

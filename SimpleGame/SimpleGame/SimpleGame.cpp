@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 Copyright 2022 Lee Taek Hee (Tech University of Korea)
 
 This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,9 @@ Renderer *g_Renderer = NULL;
 
 void RenderScene(void)
 {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	// clear color ¸¦ ¿©±â¼­ ÁöÁ¤ÇÑ´Ù.
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// clear color ë¥¼ ì—¬ê¸°ì„œ ì§€ì •í•œë‹¤.
 
 	// Renderer Test
 	//g_Renderer->DrawSolidRect(0, 0, 0, 4, 1, 0, 1, 1);

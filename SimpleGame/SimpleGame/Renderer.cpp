@@ -31,7 +31,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 		m_Initialized = true;
 	}
 	
-	CreateParticle(1);
+	CreateParticle(10000);
 }
 
 bool Renderer::IsInitialized()
@@ -236,7 +236,7 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.007f;
+	float size = 0.008f;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;
@@ -329,7 +329,7 @@ void Renderer::CreateParticle(int numParticles)
 	float emitTime;
 
 	for (int i = 0; i < numParticles; i++) {
-		emitTime = 0.f;//((float)rand() / (float)RAND_MAX) * 10.f;
+		emitTime = ((float)rand() / (float)RAND_MAX) * 10.f;
 
 		verticesEmitTime[index] = emitTime; index++;
 
@@ -358,7 +358,7 @@ void Renderer::CreateParticle(int numParticles)
 	float LiefTime;
 
 	for (int i = 0; i < numParticles; i++) {
-		LiefTime = ((float)rand() / (float)RAND_MAX) * 0.5f;// +10.f;
+		LiefTime = ((float)rand() / (float)RAND_MAX);// +10.f;
 
 		verticesLifeTime[index] = LiefTime; index++;
 
@@ -381,10 +381,103 @@ void Renderer::CreateParticle(int numParticles)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesLifeTime, GL_STATIC_DRAW);
 
 
+	// Amp
+	float* verticesAmp = NULL;
+	verticesAmp = new float[floatCountSingle];
+	index = 0;
+	float Amp;
+
+	for (int i = 0; i < numParticles; i++) {
+		Amp = 2.f * ((float)rand() / (float)RAND_MAX) - 1.f;// +10.f;
+
+		verticesAmp[index] = Amp; index++;
+
+		verticesAmp[index] = Amp; index++;
+
+		verticesAmp[index] = Amp; index++;
+
+		// 두번째 삼각형
+		verticesAmp[index] = Amp; index++;
+
+		verticesAmp[index] = Amp; index++;
+
+		verticesAmp[index] = Amp; index++;
+	}
+
+	glGenBuffers(1, &m_SinAmp);
+	glBindBuffer(GL_ARRAY_BUFFER, m_SinAmp);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesAmp, GL_STATIC_DRAW);
+
+
+	// Preiod
+	float* verticesPeriod = NULL;
+	verticesPeriod = new float[floatCountSingle];
+	index = 0;
+	float Period;
+
+	for (int i = 0; i < numParticles; i++) {
+		Period =((float)rand() / (float)RAND_MAX);// +10.f;
+
+		verticesPeriod[index] = Period; index++;
+
+		verticesPeriod[index] = Period; index++;
+
+		verticesPeriod[index] = Period; index++;
+
+		// 두번째 삼각형
+		verticesPeriod[index] = Period; index++;
+
+		verticesPeriod[index] = Period; index++;
+
+		verticesPeriod[index] = Period; index++;
+	}
+
+	glGenBuffers(1, &m_SinPeriod);
+	glBindBuffer(GL_ARRAY_BUFFER, m_SinPeriod);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesPeriod, GL_STATIC_DRAW);
+
+
+	// Value
+	float* verticesValue= NULL;
+	verticesValue = new float[floatCountSingle];
+	index = 0;
+	float Value;
+
+	for (int i = 0; i < numParticles; i++) {
+		Value = 1.f * ((float)rand() / (float)RAND_MAX);// +10.f;
+
+		verticesValue[index] = Value; index++;
+
+		verticesValue[index] = Value; index++;
+
+		verticesValue[index] = Value; index++;
+
+		// 두번째 삼각형
+		verticesValue[index] = Value; index++;
+
+		verticesValue[index] = Value; index++;
+
+		verticesValue[index] = Value; index++;
+	}
+
+	glGenBuffers(1, &m_ParticleValue);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesValue, GL_STATIC_DRAW);
+
+
 	delete[] vertices;
 	delete[] verticesVel;
 	delete[] verticesEmitTime;
 	delete[] verticesLifeTime;
+	delete[] verticesAmp;
+	delete[] verticesPeriod;
+	delete[] verticesValue;
 }
 
 void Renderer::Class0310_Render()
@@ -453,15 +546,35 @@ void Renderer::DrawParticleEffect()
 	// 3을 넣으면 작은 어레이를 초과되게 참조하기 때문에 프로그램 죽는다.
 
 	int attribLoc_LifeTime = -1;
-	attribLoc_LifeTime = glGetAttribLocation(program, "a_lifeTime");
+	attribLoc_LifeTime = glGetAttribLocation(program, "a_LifeTime");
 	glEnableVertexAttribArray(attribLoc_LifeTime);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleLifeTimeVBO);
 	glVertexAttribPointer(attribLoc_LifeTime, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
+	int attribLoc_Amp = -1;
+	attribLoc_Amp = glGetAttribLocation(program, "a_Amp");
+	glEnableVertexAttribArray(attribLoc_Amp);
+	glBindBuffer(GL_ARRAY_BUFFER, m_SinAmp);
+	glVertexAttribPointer(attribLoc_Amp, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int attribLoc_Period = -1;
+	attribLoc_Period = glGetAttribLocation(program, "a_Period");
+	glEnableVertexAttribArray(attribLoc_Period);
+	glBindBuffer(GL_ARRAY_BUFFER, m_SinPeriod);
+	glVertexAttribPointer(attribLoc_Period, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int attribLoc_Value = -1;
+	attribLoc_Value = glGetAttribLocation(program, "a_Value");
+	glEnableVertexAttribArray(attribLoc_Value);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
+	glVertexAttribPointer(attribLoc_Value, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+
+
 	int uniformLoc_Time = -1;
 	uniformLoc_Time = glGetUniformLocation(program, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
-	g_time += 0.002;
+	g_time += 0.0002;
 
 	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 }
