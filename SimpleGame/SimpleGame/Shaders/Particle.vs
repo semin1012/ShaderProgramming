@@ -13,7 +13,7 @@ uniform float u_Time;
 
 const vec3 c_Gravity = vec3(0.f, -0.8f, 0.f);
 const float c_lifeTime = 2.0f;
-const vec3 c_Vel = vec3(0.0, 0.8, 0.5);
+const vec3 c_Vel = vec3(0.0, 0.5, 0.0);
 const float c_PI = 3.141592;
 const float c_Period = 1.0f;
 const float c_Amp = 1.0f;
@@ -35,8 +35,9 @@ vec4 GraphSin()
 		float nX = sin(a_Value * 2.0 * c_PI);	// 2 Pi
 		float nY = cos(a_Value * 2.0 * c_PI);	// 2 Pi
 
-		newPosition.x = a_Position.x + nX + newT * c_Vel.x;
-		newPosition.y = a_Position.y + nY + newT * c_Vel.y;
+		newPosition.x = a_Position.x + 0.7 * nX + newT * c_Vel.x;
+		newPosition.y = a_Position.y + 0.7 * nY + newT * c_Vel.y;
+		// 0.5 = size setting
 
 		vec2 newDir = vec2(-c_Vel.y, c_Vel.x);
 		newDir = normalize(newDir);

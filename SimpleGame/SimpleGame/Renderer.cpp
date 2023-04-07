@@ -31,7 +31,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 		m_Initialized = true;
 	}
 	
-	CreateParticle(100000);
+	CreateParticle(40000);
 }
 
 bool Renderer::IsInitialized()
@@ -242,6 +242,8 @@ void Renderer::CreateParticle(int numParticles)
 	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
 	int floatCountSingle = particleCount * 6;	// value per vertex
 	int floatCountColor = particleCount * 6 * 4;	// r, g, b, a per vertex
+	int floatCountPosColor = particleCount * 6 * (3 + 4);	// particleCount * Vertex count * (Pos(3) + Color(4))
+	int floatCountPosColorVel = particleCount * 6 * (3 + 4 + 3);	// particleCount * Vertex count * (Pos(3) + Color(4) + Vel(3)) 
 	float* vertices = NULL;
 	vertices = new float[floatCount];
 	int index = 0;
@@ -250,7 +252,6 @@ void Renderer::CreateParticle(int numParticles)
 	for (int i = 0; i < numParticles; i++) {
 		centerX = 0.f; // ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
 		centerY = 0.f; //((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
-
 		vertices[index] = centerX - size; index++;
 		vertices[index] = centerY + size; index++;
 		vertices[index] = 0.f; index++;	// z 축은 안 쓰기 때문에 0.f;
@@ -281,14 +282,233 @@ void Renderer::CreateParticle(int numParticles)
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* floatCount, vertices, GL_STATIC_DRAW);
 
+
+	// Color
+	float* verticesColor = NULL;
+	verticesColor = new float[floatCountColor];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {
+		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		/// <summary>
+		/// 뒤에 *0.7+0.3 수식을 붙인 것은 단순히 0에 가까울수록 검정색이라 안 예뻐서...
+		/// 좀 더 높은 값을 랜덤으로 넣으려고... 파스텔톤...ㅇㅇ
+		/// </summary>
+		/// <param name="numParticles"></param>
+		float a = ((float)rand() / (float)RAND_MAX);
+
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+
+	}
+
+	glGenBuffers(1, &m_ParticleColor);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* floatCountColor, verticesColor, GL_STATIC_DRAW);
+
+
+
+	// Pos + Color
+	float* verticesPosColor = NULL;
+	verticesPosColor = new float[floatCountPosColor];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {	// first position, second color
+		centerX = 0.f; // ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		centerY = 0.f; //((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+
+		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float a = ((float)rand() / (float)RAND_MAX);
+
+		verticesPosColor[index] = centerX - size; index++;
+		verticesPosColor[index] = centerY + size; index++;
+		verticesPosColor[index] = 0.f; index++;	// x, y, z
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+
+		verticesPosColor[index] = centerX - size; index++;
+		verticesPosColor[index] = centerY - size; index++;
+		verticesPosColor[index] = 0.f; index++;
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+
+		verticesPosColor[index] = centerX + size; index++;
+		verticesPosColor[index] = centerY + size; index++;
+		verticesPosColor[index] = 0.f; index++;
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+
+		// 두번째 삼각형
+		verticesPosColor[index] = centerX + size; index++;
+		verticesPosColor[index] = centerY + size; index++;
+		verticesPosColor[index] = 0.f; index++;
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+
+		verticesPosColor[index] = centerX - size; index++;
+		verticesPosColor[index] = centerY - size; index++;
+		verticesPosColor[index] = 0.f; index++;
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+
+		verticesPosColor[index] = centerX + size; index++;
+		verticesPosColor[index] = centerY - size; index++;
+		verticesPosColor[index] = 0.f; index++;
+		verticesPosColor[index] = r; index++;
+		verticesPosColor[index] = g; index++;
+		verticesPosColor[index] = b; index++;
+		verticesPosColor[index] = a; index++;	// r, g, b, a
+	}
+
+	glGenBuffers(1, &m_ParticlePositionColorVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePositionColorVBO);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* floatCountPosColor, verticesPosColor, GL_STATIC_DRAW);	
+	// 캐시를 조금 더 효율적으로 사용 가능
+	// 코드가 조금 더 정리된 느낌, 짧아짐
+
+
+	// Pos + Color + Vel
+	float* verticesPosColorVel = NULL;
+	verticesPosColorVel = new float[floatCountPosColorVel];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {	// first position, second color
+		centerX = 0.f; // ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		centerY = 0.f; //((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+
+		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float a = ((float)rand() / (float)RAND_MAX);
+
+		float centerXVel = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		float centerYVel = ((float)rand() / (float)RAND_MAX) * 2.f;
+
+		verticesPosColorVel[index] = centerX - size; index++;
+		verticesPosColorVel[index] = centerY + size; index++;
+		verticesPosColorVel[index] = 0.f; index++;	// x, y, z
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;		// vel
+
+		verticesPosColorVel[index] = centerX - size; index++;
+		verticesPosColorVel[index] = centerY - size; index++;
+		verticesPosColorVel[index] = 0.f; index++;
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;		// vel
+
+
+		verticesPosColorVel[index] = centerX + size; index++;
+		verticesPosColorVel[index] = centerY + size; index++;
+		verticesPosColorVel[index] = 0.f; index++;
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;	// vel
+
+		// 두번째 삼각형
+		verticesPosColorVel[index] = centerX + size; index++;
+		verticesPosColorVel[index] = centerY + size; index++;
+		verticesPosColorVel[index] = 0.f; index++;
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;	// Vel
+
+		verticesPosColorVel[index] = centerX - size; index++;
+		verticesPosColorVel[index] = centerY - size; index++;
+		verticesPosColorVel[index] = 0.f; index++;
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;	// Vel
+
+		verticesPosColorVel[index] = centerX + size; index++;
+		verticesPosColorVel[index] = centerY - size; index++;
+		verticesPosColorVel[index] = 0.f; index++;
+		verticesPosColorVel[index] = r; index++;
+		verticesPosColorVel[index] = g; index++;
+		verticesPosColorVel[index] = b; index++;
+		verticesPosColorVel[index] = a; index++;	// r, g, b, a
+		verticesPosColorVel[index] = centerX; index++;
+		verticesPosColorVel[index] = centerY; index++;
+		verticesPosColorVel[index] = 0;		  index++;	// Vel
+	}
+
+	glGenBuffers(1, &m_ParticlePosColorVelVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountPosColorVel, verticesPosColorVel, GL_STATIC_DRAW);
+	// 캐시를 조금 더 효율적으로 사용 가능
+	// 코드가 조금 더 정리된 느낌, 짧아짐
+
+
 	// 속도
 	float* verticesVel = NULL;
 	verticesVel = new float[floatCount];
 	index = 0;
 
 	for (int i = 0; i < numParticles; i++) {
-		centerX = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
-		centerY = ((float)rand() / (float)RAND_MAX) * 2.f;
+		float centerX = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		float centerY = ((float)rand() / (float)RAND_MAX) * 2.f;
 
 		verticesVel[index] = centerX; index++;
 		verticesVel[index] = centerY; index++;
@@ -452,16 +672,12 @@ void Renderer::CreateParticle(int numParticles)
 		Value = 1.f * ((float)rand() / (float)RAND_MAX);// +10.f;
 
 		verticesValue[index] = Value; index++;
-
 		verticesValue[index] = Value; index++;
-
 		verticesValue[index] = Value; index++;
 
 		// 두번째 삼각형
 		verticesValue[index] = Value; index++;
-
 		verticesValue[index] = Value; index++;
-
 		verticesValue[index] = Value; index++;
 	}
 
@@ -473,51 +689,6 @@ void Renderer::CreateParticle(int numParticles)
 
 
 
-	// Value
-	float* verticesColor = NULL;
-	verticesColor = new float[floatCountColor];
-	index = 0;
-
-	for (int i = 0; i < numParticles; i++) {
-		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
-		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
-		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
-		float a = ((float)rand() / (float)RAND_MAX);
-
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-		verticesColor[index] = r; index++;
-		verticesColor[index] = g; index++;
-		verticesColor[index] = b; index++;
-		verticesColor[index] = a; index++;
-
-	}
-
-	glGenBuffers(1, &m_ParticleColor);
-	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
-	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
-	// 이미 복사가 되는 것
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountColor, verticesColor, GL_STATIC_DRAW);
-
 
 	delete[] vertices;
 	delete[] verticesVel;
@@ -527,6 +698,8 @@ void Renderer::CreateParticle(int numParticles)
 	delete[] verticesPeriod;
 	delete[] verticesValue;
 	delete[] verticesColor;
+	delete[] verticesPosColor;
+	delete[] verticesPosColorVel;
 }
 
 void Renderer::Class0310_Render()
@@ -577,14 +750,33 @@ void Renderer::DrawParticleEffect()
 	int attribLoc_Position = -1;
 	attribLoc_Position = glGetAttribLocation(program, "a_Position");
 	glEnableVertexAttribArray(attribLoc_Position);
-	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
-	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	/*glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);*/
+
+	int attribLoc_Color = -1;
+	attribLoc_Color = glGetAttribLocation(program, "a_Color");
+	glEnableVertexAttribArray(attribLoc_Color);
+	/*glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);*/
+
+	// Position + Color
+	//glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePositionColorVBO);
+	//glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
+	//glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(sizeof(float)*3));
+	// 바인드는 한 번만 해도 된다. 바인드 한 번만 하고 두번에 나누어 들어감.
 
 	int attribLoc_Vel = -1;
 	attribLoc_Vel = glGetAttribLocation(program, "a_Vel");
 	glEnableVertexAttribArray(attribLoc_Vel);
-	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
-	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
+	//glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	
+	// Position + Color + Vel
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelVBO);
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, 0);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 7));
+
 
 	int attribLoc_EmitTime = -1;
 	attribLoc_EmitTime = glGetAttribLocation(program, "a_EmitTime");
@@ -617,12 +809,6 @@ void Renderer::DrawParticleEffect()
 	glEnableVertexAttribArray(attribLoc_Value);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
 	glVertexAttribPointer(attribLoc_Value, 1, GL_FLOAT, GL_FALSE, 0, 0);
-
-	int attribLoc_Color = -1;
-	attribLoc_Color = glGetAttribLocation(program, "a_Color");
-	glEnableVertexAttribArray(attribLoc_Color);
-	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
-	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 
 

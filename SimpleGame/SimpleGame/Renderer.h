@@ -41,7 +41,9 @@ private:
 	GLuint m_SinPeriod = -1;
 	GLuint m_SinAmp = -1;
 	GLuint m_ParticleValue = -1;
-	GLuint m_ParticleColor = -1; // Particle Color, vs out 
+	GLuint m_ParticleColor = -1;			// Particle Color, vs out 
+	GLuint m_ParticlePositionColorVBO = -1;	// Position + Color VBO
+	GLuint m_ParticlePosColorVelVBO = -1;	// Position + Color + Vel VBO
 	
 
 	bool m_Initialized = false;
