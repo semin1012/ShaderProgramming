@@ -31,7 +31,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 		m_Initialized = true;
 	}
 	
-	CreateParticle(10000);
+	CreateParticle(100000);
 }
 
 bool Renderer::IsInitialized()
@@ -236,11 +236,12 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.008f;
+	float size = 0.006f;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
-	int floatCount = particleCount * 6 * 3;
-	int floatCountSingle = particleCount * 6;
+	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
+	int floatCountSingle = particleCount * 6;	// value per vertex
+	int floatCountColor = particleCount * 6 * 4;	// r, g, b, a per vertex
 	float* vertices = NULL;
 	vertices = new float[floatCount];
 	int index = 0;
@@ -471,6 +472,53 @@ void Renderer::CreateParticle(int numParticles)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesValue, GL_STATIC_DRAW);
 
 
+
+	// Value
+	float* verticesColor = NULL;
+	verticesColor = new float[floatCountColor];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {
+		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float a = ((float)rand() / (float)RAND_MAX);
+
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+		verticesColor[index] = r; index++;
+		verticesColor[index] = g; index++;
+		verticesColor[index] = b; index++;
+		verticesColor[index] = a; index++;
+
+	}
+
+	glGenBuffers(1, &m_ParticleColor);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
+	// 실제 데이터 이동이 일어나는 glBufferData 라서 vertices, verticesVel 지워도 문제가 없다.
+	// 이미 복사가 되는 것
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountColor, verticesColor, GL_STATIC_DRAW);
+
+
 	delete[] vertices;
 	delete[] verticesVel;
 	delete[] verticesEmitTime;
@@ -478,6 +526,7 @@ void Renderer::CreateParticle(int numParticles)
 	delete[] verticesAmp;
 	delete[] verticesPeriod;
 	delete[] verticesValue;
+	delete[] verticesColor;
 }
 
 void Renderer::Class0310_Render()
@@ -568,6 +617,13 @@ void Renderer::DrawParticleEffect()
 	glEnableVertexAttribArray(attribLoc_Value);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
 	glVertexAttribPointer(attribLoc_Value, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int attribLoc_Color = -1;
+	attribLoc_Color = glGetAttribLocation(program, "a_Color");
+	glEnableVertexAttribArray(attribLoc_Color);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
 
 
 

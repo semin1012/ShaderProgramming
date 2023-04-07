@@ -7,15 +7,18 @@ in float a_LifeTime;
 in float a_Period;
 in float a_Amp;
 in float a_Value;
+in vec4 a_Color;
 
 uniform float u_Time;
 
 const vec3 c_Gravity = vec3(0.f, -0.8f, 0.f);
 const float c_lifeTime = 2.0f;
-const vec3 c_Vel = vec3(1.0, 0.0, 0.0);
+const vec3 c_Vel = vec3(0.0, 0.8, 0.5);
 const float c_PI = 3.141592;
 const float c_Period = 1.0f;
 const float c_Amp = 1.0f;
+
+varying vec4 v_Color;	// out vecter4 vertex
 
 vec4 GraphSin()
 {
@@ -46,5 +49,6 @@ vec4 GraphSin()
 void main()
 {
 	gl_Position = GraphSin();
+	v_Color = a_Color;	// add Color
 	//gl_Position = P1();
 }

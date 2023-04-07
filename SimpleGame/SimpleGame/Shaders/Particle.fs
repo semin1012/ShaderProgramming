@@ -2,7 +2,9 @@
 
 layout(location=0) out vec4 FragColor;
 
+varying vec4 v_Color;	// in vecter4 vertex
+
 void main()
 {
-	FragColor = vec4(1.f, 1.f, 1.f, 1.f);
+	FragColor = v_Color;
 }
