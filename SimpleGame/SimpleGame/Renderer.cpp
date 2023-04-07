@@ -773,9 +773,11 @@ void Renderer::DrawParticleEffect()
 	
 	// Position + Color + Vel
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelVBO);
+	// 바인드는 한 번만 해도 된다. 바인드 한 번만 하고 세 번에 나누어 들어감.
 	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, 0);
 	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
 	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 7));
+	// x, y, z, r, g, b, a, vx, vy, vz 총 열 개
 
 
 	int attribLoc_EmitTime = -1;
