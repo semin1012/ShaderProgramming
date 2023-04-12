@@ -20,11 +20,12 @@ const float c_Amp = 1.0f;
 
 varying vec4 v_Color;	// out vecter4 vertex
 
-vec4 GraphSin()
+void GraphSin()
 {
    float t = u_Time - a_EmitTime;
 
 	vec4 newPosition = vec4(0, 0, 0, 1);
+	float newAlpha = 0.0;
    if(t < 0)
    {
       
@@ -42,14 +43,18 @@ vec4 GraphSin()
 		vec2 newDir = vec2(-c_Vel.y, c_Vel.x);
 		newDir = normalize(newDir);
 		newPosition.xy += newDir * (newT * a_Amp * sin(a_Period * newT * 2.0 * c_PI));
+
+		newAlpha = 1.f - newT/a_LifeTime;
+		newAlpha = pow(newAlpha, 0.2);	// set speed (speed down -> 0.2, speed up -> 10)
    }
 
-	return newPosition;
+	gl_Position = newPosition;
+	v_Color = vec4( a_Color.rgb, a_Color.a * newAlpha);	// add Color
+
 }
 
 void main()
 {
-	gl_Position = GraphSin();
-	v_Color = a_Color;	// add Color
+	GraphSin();
 	//gl_Position = P1();
 }
