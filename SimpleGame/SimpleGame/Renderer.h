@@ -49,6 +49,7 @@ private:
 	// Fragment Shader
 	GLuint m_FragmentShandboxShader = 0;
 	GLuint m_FragmentSandboxVBO = 0;
+	GLuint m_ParticlePosColorVelUVVBO;
 	
 
 	bool m_Initialized = false;

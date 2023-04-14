@@ -38,6 +38,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 		-1.f, -1.f, 0.f,		0.f, 1.f,	// x, t, z, tx, ty
 		-1.f, 1.f, 0.f,			0.f, 0.f,
 		1.f, 1.f, 0.f,			1.f, 0.f,	//Triangle1
+
 		-1.f, -1.f, 0.f,		0.f, 1.f,  
 		1.f, 1.f, 0.f,			1.f, 0.f,
 		1.f, -1.f, 0.f,			1.f, 1.f	//Triangle2
@@ -47,7 +48,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	glBindBuffer(GL_ARRAY_BUFFER, m_FragmentSandboxVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect1), rect1, GL_STATIC_DRAW);
 	
-	CreateParticle(40000);
+	CreateParticle(1000);
 }
 
 bool Renderer::IsInitialized()
@@ -252,7 +253,7 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.006f;
+	float size = 0.1;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
@@ -260,6 +261,7 @@ void Renderer::CreateParticle(int numParticles)
 	int floatCountColor = particleCount * 6 * 4;	// r, g, b, a per vertex
 	int floatCountPosColor = particleCount * 6 * (3 + 4);	// particleCount * Vertex count * (Pos(3) + Color(4))
 	int floatCountPosColorVel = particleCount * 6 * (3 + 4 + 3);	// particleCount * Vertex count * (Pos(3) + Color(4) + Vel(3)) 
+	int floatCountPosColorVelUV = particleCount * 6 * (3 + 4 + 3 + 2);	// particleCount * Vertex count * (Pos(3) + Color(4) + Vel(3)) 
 	float* vertices = NULL;
 	vertices = new float[floatCount];
 	int index = 0;
@@ -704,6 +706,111 @@ void Renderer::CreateParticle(int numParticles)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountSingle, verticesValue, GL_STATIC_DRAW);
 
 
+	// Pos + Color + Vel + UV
+	float* verticesPosColorVelUV = NULL;
+	verticesPosColorVelUV = new float[floatCountPosColorVelUV];
+	index = 0;
+
+	for (int i = 0; i < numParticles; i++) {	// first position, second color
+		centerX = 0.f; // ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		centerY = 0.f; //((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+
+		float r = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float g = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float b = ((float)rand() / (float)RAND_MAX) * 0.7 + 0.3;
+		float a = ((float)rand() / (float)RAND_MAX);
+
+		float centerXVel = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+		float centerYVel = ((float)rand() / (float)RAND_MAX) * 2.f;
+
+		verticesPosColorVelUV[index] = centerX - size; index++;
+		verticesPosColorVelUV[index] = centerY + size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;	// x, y, z
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;		// vel
+		verticesPosColorVelUV[index] = 0.f;		  index++;
+		verticesPosColorVelUV[index] = 0.f;		  index++;		// UV
+
+		verticesPosColorVelUV[index] = centerX - size; index++;
+		verticesPosColorVelUV[index] = centerY - size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;		// vel
+		verticesPosColorVelUV[index] = 0.f;		  index++;
+		verticesPosColorVelUV[index] = 1.f;		  index++;		// UV
+
+
+		verticesPosColorVelUV[index] = centerX + size; index++;
+		verticesPosColorVelUV[index] = centerY + size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;	// vel
+		verticesPosColorVelUV[index] = 1.f;		  index++;
+		verticesPosColorVelUV[index] = 0.f;		  index++;		// UV
+
+		// 두번째 삼각형
+		verticesPosColorVelUV[index] = centerX + size; index++;
+		verticesPosColorVelUV[index] = centerY + size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;	// Vel
+		verticesPosColorVelUV[index] = 1.f;		  index++;
+		verticesPosColorVelUV[index] = 0.f;		  index++;		// UV
+
+		verticesPosColorVelUV[index] = centerX - size; index++;
+		verticesPosColorVelUV[index] = centerY - size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;	// Vel
+		verticesPosColorVelUV[index] = 0.f;		  index++;
+		verticesPosColorVelUV[index] = 1.f;		  index++;		// UV
+
+		verticesPosColorVelUV[index] = centerX + size; index++;
+		verticesPosColorVelUV[index] = centerY - size; index++;
+		verticesPosColorVelUV[index] = 0.f; index++;
+		verticesPosColorVelUV[index] = r; index++;
+		verticesPosColorVelUV[index] = g; index++;
+		verticesPosColorVelUV[index] = b; index++;
+		verticesPosColorVelUV[index] = a; index++;	// r, g, b, a
+		verticesPosColorVelUV[index] = centerX; index++;
+		verticesPosColorVelUV[index] = centerY; index++;
+		verticesPosColorVelUV[index] = 0;		  index++;	// Vel
+		verticesPosColorVelUV[index] = 1.f;		  index++;
+		verticesPosColorVelUV[index] = 1.f;		  index++;		// UV
+	}
+
+	glGenBuffers(1, &m_ParticlePosColorVelUVVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelUVVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * floatCountPosColorVelUV, verticesPosColorVelUV, GL_STATIC_DRAW);
+	// 캐시를 조금 더 효율적으로 사용 가능
+	// 코드가 조금 더 정리된 느낌, 짧아짐
+
+
 
 
 	delete[] vertices;
@@ -791,13 +898,18 @@ void Renderer::DrawParticleEffect()
 	glEnableVertexAttribArray(attribLoc_Vel);
 	//glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
 	//glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	
 	// Position + Color + Vel
-	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelVBO);
+
+	int attribLoc_UV = -1;
+	attribLoc_UV = glGetAttribLocation(program, "a_UV");
+	glEnableVertexAttribArray(attribLoc_UV);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelUVVBO);
 	// 바인드는 한 번만 해도 된다. 바인드 한 번만 하고 세 번에 나누어 들어감.
-	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, 0);
-	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
-	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 7));
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 12, 0);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 7));
+	glVertexAttribPointer(attribLoc_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 10));
 	// x, y, z, r, g, b, a, vx, vy, vz 총 열 개
 
 
@@ -833,9 +945,6 @@ void Renderer::DrawParticleEffect()
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
 	glVertexAttribPointer(attribLoc_Value, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
-
-
-
 	int uniformLoc_Time = -1;
 	uniformLoc_Time = glGetUniformLocation(program, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
@@ -861,7 +970,25 @@ void Renderer::DrawFragmentSandbox()
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_FragmentSandboxVBO);
 	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-	glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float)*3));
+	glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+
+	int uniformLoc_Point = -1;
+	uniformLoc_Point = glGetUniformLocation(shader, "u_Point");
+	glUniform2f(uniformLoc_Point, 0.5f, 0.5f);
+
+	float points[] = { 0.5f, 0.5f,
+					0.f, 0.f,
+					1.f, 1.f };
+	
+	int uniformLoc_Points = -1;
+	uniformLoc_Points = glGetUniformLocation(shader, "u_Points");
+	glUniform2fv(uniformLoc_Points, 3, points);		// glUniform2fv 처럼 v 를 붙이면 array 가 넘겨진다.
+
+	int uniformLoc_Time = 01;
+	uniformLoc_Time = glGetUniformLocation(shader, "u_Time");
+	glUniform1f(uniformLoc_Time, g_time);
+	g_time += 0.001f;
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }

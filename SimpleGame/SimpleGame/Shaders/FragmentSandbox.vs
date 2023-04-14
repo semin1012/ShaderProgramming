@@ -2,6 +2,8 @@
 
 in vec3 a_Position;	
 in vec2 a_Texcoord;
+in vec3 a_Vel;
+in vec2 a_UV;
 
 out vec2 v_Texcoord;
 
