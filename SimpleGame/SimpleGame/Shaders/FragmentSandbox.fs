@@ -52,7 +52,7 @@ void circles()
 
 void radar()
 {
-	vec2 temp = v_Texcoord - u_Points[0];
+	vec2 temp = v_Texcoord - vec2(0.5f, 0.5f);
 	vec4 result = vec4(0);
 	float distance = length(temp);
 	float value = 0.2 *( pow(sin(distance * 2 * c_PI - u_Time), 12) - 0.5);

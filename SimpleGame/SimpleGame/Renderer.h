@@ -18,6 +18,8 @@ public:
 	void Class0310_Render();
 	void DrawParticleEffect();
 	void DrawFragmentSandbox();
+	void DrawAlphaClear();
+	void DrawVertexSandbox();
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -50,6 +52,15 @@ private:
 	GLuint m_FragmentShandboxShader = 0;
 	GLuint m_FragmentSandboxVBO = 0;
 	GLuint m_ParticlePosColorVelUVVBO;
+
+	// Alpha effect
+	GLuint m_AlphaClearShader = 0;
+	GLuint m_AlphaClearVBO = 0;
+
+	// Sine line
+	GLuint m_VertexSandboxShader = 0;
+	GLuint m_HoriLineVBO = 0;
+	GLuint m_HoriLineVertexCount = 0;
 	
 
 	bool m_Initialized = false;

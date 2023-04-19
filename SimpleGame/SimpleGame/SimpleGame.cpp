@@ -17,15 +17,23 @@ but WITHOUT ANY WARRANTY.
 
 Renderer *g_Renderer = NULL;
 
+int g_WindowSizeX = 500;
+int g_WindowSizeY = 500;
+
 void RenderScene(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	/*잔상용*/glClear(GL_DEPTH_BUFFER_BIT);
+	g_Renderer->DrawAlphaClear();
+	glClearColor(0.0f, 0.0f, 0.0f, 1.f);
 	// clear color 를 여기서 지정한다.
+	// * 잔상 지정하기 
+	//		- clear 를 하지 말고 알파값을 조절해서 덮어 블렌딩한다면 잔상 효과가 날 것
 
 	// Renderer Test
 	//g_Renderer->DrawSolidRect(0, 0, 0, 4, 1, 0, 1, 1);
-	g_Renderer->DrawFragmentSandbox();
+	//g_Renderer->DrawVertexSandbox();
+	g_Renderer->DrawParticleEffect();
 
 	glutSwapBuffers();
 }
@@ -56,7 +64,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
-	glutInitWindowSize(500, 500);
+	glutInitWindowSize(g_WindowSizeX, g_WindowSizeY);
 	glutCreateWindow("Game Software Engineering KPU");
 
 	glewInit();
