@@ -67,7 +67,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect2), rect2, GL_STATIC_DRAW);
 
 
-	m_HoriLineVertexCount = 100;
+	m_HoriLineVertexCount = 10;
 	int floatCount = m_HoriLineVertexCount * 3;
 	int index = 0;
 	float gap = 2.f / ((float)m_HoriLineVertexCount - 1.f);
@@ -289,7 +289,7 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.07;
+	float size = 0.01;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
@@ -984,7 +984,7 @@ void Renderer::DrawParticleEffect()
 	int uniformLoc_Time = -1;
 	uniformLoc_Time = glGetUniformLocation(program, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
-	g_time += 0.0002;
+	g_time += 0.0001;
 
 	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 
@@ -1024,7 +1024,7 @@ void Renderer::DrawFragmentSandbox()
 	int uniformLoc_Time = 01;
 	uniformLoc_Time = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
-	g_time += 0.0007f;
+	g_time += 0.00005f;
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -1042,12 +1042,15 @@ void Renderer::DrawAlphaClear()
 	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDisable(GL_BLEND);
 }
 
 void Renderer::DrawVertexSandbox()
 {
 	GLuint shader = m_VertexSandboxShader;
 	glUseProgram(shader);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	GLuint posLoc = glGetAttribLocation(shader, "a_Position");
 	glEnableVertexAttribArray(posLoc);
@@ -1056,13 +1059,19 @@ void Renderer::DrawVertexSandbox()
 
 	GLuint timeULoc = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(timeULoc, g_time);
-	g_time += 0.002;
+	g_time += 0.0004;
 
 	glDrawArrays(GL_LINE_STRIP, 0, m_HoriLineVertexCount);
-	
+
 	glUniform1f(timeULoc, g_time + 0.2);
 	glDrawArrays(GL_LINE_STRIP, 0, m_HoriLineVertexCount);
+	
 	glUniform1f(timeULoc, g_time + 0.4);
 	glDrawArrays(GL_LINE_STRIP, 0, m_HoriLineVertexCount);
+	
+	glUniform1f(timeULoc, g_time + 0.6);
+	glDrawArrays(GL_LINE_STRIP, 0, m_HoriLineVertexCount);
 
+
+	glDisable(GL_BLEND);
 }
