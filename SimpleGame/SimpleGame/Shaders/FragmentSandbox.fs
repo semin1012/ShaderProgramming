@@ -53,21 +53,10 @@ void circles()
 
 void radar()
 {
-	vec2 temp = v_Texcoord - vec2(0.5f, 0.5f);
+	vec2 temp = v_Texcoord - u_Points[0];
 	vec4 result = vec4(0);
 	float distance = length(temp);
 	float value = 0.2 *( pow(sin(distance * 2 * c_PI - u_Time), 12) - 0.5);
-	float temp1 = ceil(value);
-
-	for ( int i = 0 ; i < 3; i++ ){
-		vec2 temp = v_Texcoord - u_Points[i];
-		distance = length(temp);
-
-		if ( distance < 0.1f ) 
-		{
-			//result += 1.f * temp1;
-		}
-	}	
 
 	FragColor = vec4(result + 10 * value);
 }
@@ -103,6 +92,6 @@ void main()
 {
 	//radar();
 	// 위치에는 변화가 없고 출력되는 색에만 영향을 미친다.
-	flag();
+	radar();
 	//test();
 }

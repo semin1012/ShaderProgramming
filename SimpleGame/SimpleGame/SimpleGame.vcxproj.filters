@@ -79,10 +79,16 @@
     <None Include="Shaders\VertexSandbox.vs">
       <Filter>소스 파일\Shaders</Filter>
     </None>
+    <None Include="Shaders\TextureSandboxShader.vs">
+      <Filter>소스 파일\Shaders</Filter>
+    </None>
     <None Include="Shaders\TextureSandboxShader.fs">
       <Filter>소스 파일\Shaders</Filter>
     </None>
-    <None Include="Shaders\TextureSandboxShader.vs">
+    <None Include="Shaders\MidTermVS.fs">
+      <Filter>소스 파일\Shaders</Filter>
+    </None>
+    <None Include="Shaders\MidTermVS.vs">
       <Filter>소스 파일\Shaders</Filter>
     </None>
   </ItemGroup>

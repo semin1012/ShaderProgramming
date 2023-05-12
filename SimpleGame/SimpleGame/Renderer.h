@@ -23,6 +23,7 @@ public:
 	void DrawTextureSandbox();
 	void CreateTextures();
 	GLuint CreatePngTexture(char* filePath, GLuint samplingMethod);
+	void DrawMidTerm();
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -70,6 +71,10 @@ private:
 	GLuint m_TextureSandboxVBO = 0;	
 	GLuint m_CheckerBoardTexture = 0;
 	GLuint m_RGBTexture = 0;
+
+	// Midterm
+	GLuint m_MidTermShader = 0;
+	GLuint m_MidTermVBO = 0;
 
 	bool m_Initialized = false;
 	

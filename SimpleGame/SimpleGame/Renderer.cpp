@@ -28,6 +28,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_AlphaClearShader = CompileShaders("./Shaders/AlphaClear.vs", "./Shaders/AlphaClear.fs");
 	m_VertexSandboxShader = CompileShaders("./Shaders/VertexSandbox.vs", "./Shaders/VertexSandbox.fs");
 	m_TextureSandboxShader = CompileShaders("./Shaders/TextureSandboxShader.vs", "./Shaders/TextureSandboxShader.fs");
+	m_MidTermShader = CompileShaders("./Shaders/MidTermVS.vs", "./Shaders/MidTermVS.fs");
 
 	//Create VBOs
 	CreateVertexBufferObjects();
@@ -1124,6 +1125,11 @@ void Renderer::DrawTextureSandbox()
 	//glBindTexture(GL_TEXTURE_2D, m_CheckerBoardTexture);
 	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
 
+	GLuint repeatULoc = glGetUniformLocation(shader, "u_XYRepeat");
+	//glUniform2f(repeatULoc, (float)((int)g_time*4), 4.f);
+	glUniform2f(repeatULoc, 4.f, 4.f);
+	g_time += 0.001;
+
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 }
@@ -1175,4 +1181,19 @@ GLuint Renderer::CreatePngTexture(char* filePath, GLuint samplingMethod)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, samplingMethod);
 	
 	return temp;
+}
+
+void Renderer::DrawMidTerm()
+{
+	GLuint shader = m_MidTermShader;
+	glUseProgram(shader);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, m_CheckerBoardTexture);
+	glBindTexture(GL_TEXTURE_2D, m_testVBO);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
