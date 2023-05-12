@@ -76,6 +76,16 @@ private:
 	GLuint m_MidTermShader = 0;
 	GLuint m_MidTermVBO = 0;
 
+	// Texture Animation
+	GLuint m_0Texture = 0;
+	GLuint m_1Texture = 0;
+	GLuint m_2Texture = 0;
+	GLuint m_3Texture = 0;
+	GLuint m_4Texture = 0;
+	GLuint m_5Texture = 0;
+	GLuint m_CurrentTexID = 0;
+	GLuint m_MergeTexture = 0;
+
 	bool m_Initialized = false;
 	
 	unsigned int m_WindowSizeX = 0;

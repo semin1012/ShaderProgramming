@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "LoadPng.h"
 #include "assert.h"
+#include <Windows.h>
 #include <random>
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
@@ -94,6 +95,13 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	CreateTextures();
 	// Load Textures
 	m_RGBTexture = CreatePngTexture("./rgb.png", GL_NEAREST);
+	m_0Texture = CreatePngTexture("./Textures/0.png", GL_NEAREST);
+	m_1Texture = CreatePngTexture("./Textures/1.png", GL_NEAREST);
+	m_2Texture = CreatePngTexture("./Textures/2.png", GL_NEAREST);
+	m_3Texture = CreatePngTexture("./Textures/3.png", GL_NEAREST);
+	m_4Texture = CreatePngTexture("./Textures/4.png", GL_NEAREST);
+	m_5Texture = CreatePngTexture("./Textures/5.png", GL_NEAREST);
+	m_MergeTexture = CreatePngTexture("./Textures/6.png", GL_NEAREST);
 }
 
 bool Renderer::IsInitialized()
@@ -1119,16 +1127,51 @@ void Renderer::DrawTextureSandbox()
 	glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 
 							(GLvoid*)(sizeof(float)*3));
 
-	GLuint samplerULoc = glGetUniformLocation(shader, "u_TexSampler");
-	glUniform1i(samplerULoc, 0);
+
+	/* RGB Textures */
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+
+
+
+	/* case:: separated Texture, 한개로 합쳐진 이미지가 아닐 때. 분리되어 있는 이미지일 때 */
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, m_0Texture);	
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, m_1Texture);	
+	//glActiveTexture(GL_TEXTURE3);
+	//glBindTexture(GL_TEXTURE_2D, m_2Texture);	
+	//glActiveTexture(GL_TEXTURE4);
+	//glBindTexture(GL_TEXTURE_2D, m_3Texture);	
+	//glActiveTexture(GL_TEXTURE5);
+	//glBindTexture(GL_TEXTURE_2D, m_4Texture);	
+	//glActiveTexture(GL_TEXTURE6);
+	//glBindTexture(GL_TEXTURE_2D, m_5Texture);
+
+
+
+	/* case:: separated Texture, 한 개로 합쳐진 이미지일 때 */
 	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, m_CheckerBoardTexture);
-	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	glBindTexture(GL_TEXTURE_2D, m_MergeTexture);
+
+
 
 	GLuint repeatULoc = glGetUniformLocation(shader, "u_XYRepeat");
-	//glUniform2f(repeatULoc, (float)((int)g_time*4), 4.f);
 	glUniform2f(repeatULoc, 4.f, 4.f);
+
+	GLuint animStepULoc = glGetUniformLocation(shader, "u_AnimStep");
+	glUniform1i(animStepULoc, m_CurrentTexID);
+
 	g_time += 0.001;
+
+	GLuint samplerULoc = glGetUniformLocation(shader, "u_TexSampler");
+	glUniform1i(samplerULoc, 0);
+
+	m_CurrentTexID++;
+	if (m_CurrentTexID > 5)
+		m_CurrentTexID = 0;
+	Sleep(1000);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 

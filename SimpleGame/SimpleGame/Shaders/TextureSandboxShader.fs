@@ -5,6 +5,7 @@ layout(location=0) out vec4 FragColor;
 uniform sampler2D u_TexSampler;
 
 uniform vec2 u_XYRepeat = vec2(2, 2);
+uniform int u_AnimStep = 0;
 
 in vec2 v_TexPos;
 
@@ -99,11 +100,26 @@ void P7()
 	//FragColor = vec4(x);
 }
 
+// case:: separated texture
+void MultiTexture()
+{
+	FragColor = texture(u_TexSampler, v_TexPos);
+}
+
+// case:: Merge Texture
+void MergeTexture()
+{
+	float x = v_TexPos.x;
+	float y = u_AnimStep / 6.0 + v_TexPos.y/6.0;
+	vec2 newTexPos = vec2(x, y);
+	FragColor = texture(u_TexSampler, newTexPos); 
+}
+
 void main()
 {
 	//FragColor = vec4(v_TexPos, 0, 1);
 
 	//float y = 1.0 - abs(v_TexPos.y * 2.0 - 1.0);
 	
-	P3();
+	MergeTexture();
 }
