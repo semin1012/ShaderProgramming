@@ -6,6 +6,10 @@ uniform sampler2D u_TexSampler;
 
 uniform vec2 u_XYRepeat = vec2(2, 2);
 uniform int u_AnimStep = 0;
+uniform float u_SeqNum = 0;
+
+uniform float u_AnimTextureX = 0;
+uniform float u_AnimTextureY = 0;
 
 in vec2 v_TexPos;
 
@@ -115,11 +119,29 @@ void MergeTexture()
 	FragColor = texture(u_TexSampler, newTexPos); 
 }
 
+void SATexture()
+{
+	float seqNum = u_SeqNum;
+	float nX = int(seqNum) % 8;
+	float nY = floor(seqNum / 8.0);
+	float offsetX = nX / 8.0;
+	float offsetY = nY / 6.0;
+
+	float x = offsetX + v_TexPos.x / u_AnimTextureX;
+	float y = offsetY + v_TexPos.y / u_AnimTextureY;
+
+	//float x = u_AnimStep / u_AnimTextureX + v_TexPos.x / u_AnimTextureX;
+	//float y = floor(x) / u_AnimTextureY + v_TexPos.y / u_AnimTextureY;
+	vec2 newTexPos = vec2(x, y);
+	FragColor = texture(u_TexSampler, newTexPos); 
+}
+
 void main()
 {
 	//FragColor = vec4(v_TexPos, 0, 1);
 
 	//float y = 1.0 - abs(v_TexPos.y * 2.0 - 1.0);
 	
-	MergeTexture();
+	//MergeTexture();
+	SATexture();
 }

@@ -7,7 +7,10 @@ in vec2 v_Texcoord;
 uniform vec2 u_Point;
 uniform vec2 u_Points[3];
 uniform float u_Time;
+uniform sampler2D u_Texture;
 const float c_PI = 3.141592;
+
+uniform int u_AnimStep = 0;
 
 void test()
 {
@@ -88,10 +91,33 @@ void flag()
 	
 }
 
+void realFlag()
+{
+	float period = (v_Texcoord.x + 1.0) * 1.0;
+	float xValue = v_Texcoord.x * 2.0 * c_PI * period;
+	float yValue = ((1.0 - v_Texcoord.y) - 0.5) * 2.0;
+	float sinValue = 0.25 * sin(xValue - 70.0 * u_Time);
+	if ( sinValue * v_Texcoord.x + 0.75 > yValue 
+		&& sinValue * v_Texcoord.x - 0.75 < yValue)
+	{
+		float vX = v_Texcoord.x;
+		float yWidth = 1.5;
+		float yDistance = yValue - (sinValue * v_Texcoord.x - 0.75);
+		float vY = 1.0 - yDistance / yWidth;
+		FragColor = texture(u_Texture, vec2(vX, vY));
+		//FragColor = vec4(vX, vY, 0, 1);
+	}
+	else 
+	{
+		FragColor = vec4(0);
+	}
+}
+
 void main()
 {
 	//radar();
 	// 위치에는 변화가 없고 출력되는 색에만 영향을 미친다.
-	radar();
+	//flag();
+	realFlag();
 	//test();
 }

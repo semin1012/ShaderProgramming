@@ -23,7 +23,9 @@ public:
 	void DrawTextureSandbox();
 	void CreateTextures();
 	GLuint CreatePngTexture(char* filePath, GLuint samplingMethod);
+	void CreateGridMesh();
 	void DrawMidTerm();
+	void DrawGridMesh();
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -85,6 +87,15 @@ private:
 	GLuint m_5Texture = 0;
 	GLuint m_CurrentTexID = 0;
 	GLuint m_MergeTexture = 0;
+
+	// Particle
+	GLuint m_ParticleTexture = 0;
+
+	GLuint m_ExplosionTexture = 0;
+
+	GLuint m_GridMeshVertexCount = 0;
+	GLuint m_GridMeshVBO = 0;
+	GLuint m_GridMeshShader = 0;
 
 	bool m_Initialized = false;
 	

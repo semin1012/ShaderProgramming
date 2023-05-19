@@ -30,9 +30,11 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_VertexSandboxShader = CompileShaders("./Shaders/VertexSandbox.vs", "./Shaders/VertexSandbox.fs");
 	m_TextureSandboxShader = CompileShaders("./Shaders/TextureSandboxShader.vs", "./Shaders/TextureSandboxShader.fs");
 	m_MidTermShader = CompileShaders("./Shaders/MidTermVS.vs", "./Shaders/MidTermVS.fs");
+	m_GridMeshShader = CompileShaders("./Shaders/GridMesh.vs", "./Shaders/GridMesh.fs");
 
 	//Create VBOs
 	CreateVertexBufferObjects();
+
 
 	if (m_SolidRectShader > 0 && m_VBORect > 0)
 	{
@@ -102,6 +104,12 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_4Texture = CreatePngTexture("./Textures/4.png", GL_NEAREST);
 	m_5Texture = CreatePngTexture("./Textures/5.png", GL_NEAREST);
 	m_MergeTexture = CreatePngTexture("./Textures/6.png", GL_NEAREST);
+
+
+	m_ParticleTexture = CreatePngTexture("./particle.png", GL_NEAREST);
+	m_ExplosionTexture = CreatePngTexture("./Textures/explosion.png", GL_NEAREST);
+
+	CreateGridMesh();
 }
 
 bool Renderer::IsInitialized()
@@ -322,7 +330,7 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.01;
+	float size = 0.1;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
@@ -1019,6 +1027,11 @@ void Renderer::DrawParticleEffect()
 	glUniform1f(uniformLoc_Time, g_time);
 	g_time += 0.0001;
 
+	int texULoc = glGetUniformLocation(program, "fu_Texture");
+	glUniform1i(texULoc, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_ParticleTexture);
+
 	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 
 	glDisable(GL_BLEND);
@@ -1054,10 +1067,26 @@ void Renderer::DrawFragmentSandbox()
 	uniformLoc_Points = glGetUniformLocation(shader, "u_Points");
 	glUniform2fv(uniformLoc_Points, 3, points);		// glUniform2fv 처럼 v 를 붙이면 array 가 넘겨진다.
 
-	int uniformLoc_Time = 01;
+	int uniformLoc_Time = -1;
 	uniformLoc_Time = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
+
+	GLuint animStepULoc = glGetUniformLocation(shader, "u_AnimStep");
+	glUniform1i(animStepULoc, m_CurrentTexID);
+
+	m_CurrentTexID++;
+	if (m_CurrentTexID > 5)
+		m_CurrentTexID = 0;
+	//Sleep(1000);
+
 	g_time += 0.00005f;
+
+	int uniformLoc_Texture = -1;
+	uniformLoc_Texture = glGetUniformLocation(shader, "u_Texture");
+	glUniform1f(uniformLoc_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	glBindTexture(GL_TEXTURE_2D, m_ExplosionTexture);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -1154,7 +1183,8 @@ void Renderer::DrawTextureSandbox()
 	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, m_CheckerBoardTexture);
 	glBindTexture(GL_TEXTURE_2D, m_MergeTexture);
-
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_ExplosionTexture);
 
 
 	GLuint repeatULoc = glGetUniformLocation(shader, "u_XYRepeat");
@@ -1163,15 +1193,24 @@ void Renderer::DrawTextureSandbox()
 	GLuint animStepULoc = glGetUniformLocation(shader, "u_AnimStep");
 	glUniform1i(animStepULoc, m_CurrentTexID);
 
-	g_time += 0.001;
+	GLuint seqULoc = glGetUniformLocation(shader, "u_SeqNum");
+	glUniform1f(seqULoc, g_time);
+
+	GLuint animTextureXLoc = glGetUniformLocation(shader, "u_AnimTextureX");
+	glUniform1f(animTextureXLoc, 8.0);
+
+	GLuint animTextureYLoc = glGetUniformLocation(shader, "u_AnimTextureY");
+	glUniform1f(animTextureYLoc, 6.0);
+
+	g_time += 1;
 
 	GLuint samplerULoc = glGetUniformLocation(shader, "u_TexSampler");
-	glUniform1i(samplerULoc, 0);
+	glUniform1i(samplerULoc, 1);
 
 	m_CurrentTexID++;
-	if (m_CurrentTexID > 5)
-		m_CurrentTexID = 0;
-	Sleep(1000);
+	/*if (m_CurrentTexID > 5)
+		m_CurrentTexID = 0;*/
+	Sleep(16.5);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1226,6 +1265,93 @@ GLuint Renderer::CreatePngTexture(char* filePath, GLuint samplingMethod)
 	return temp;
 }
 
+void Renderer::CreateGridMesh()
+{
+	float basePosX = -0.5f;
+	float basePosY = -0.5f;
+	float targetPosX = 0.5f;
+	float targetPosY = 0.5f;
+
+	// 버텍스를 부드럽게 하려면 밑의 숫자를 높이면 된다.
+	// 프래그먼트 셰이더를 움직이는 것보다 계산량은 훨씬 적다.
+	int pointCountX = 8;
+	int pointCountY = 8;
+	//int pointCountX = 64;
+	//int pointCountY = 64;
+
+	float width = targetPosX - basePosX;
+	float height = targetPosY - basePosY;
+
+	float* point = new float[pointCountX * pointCountY * 2];
+	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
+	m_GridMeshVertexCount = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
+
+	//Prepare points
+	for (int x = 0; x < pointCountX; x++)
+	{
+		for (int y = 0; y < pointCountY; y++)
+		{
+			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
+			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
+		}
+	}
+
+	//Make triangles
+	int vertIndex = 0;
+	for (int x = 0; x < pointCountX - 1; x++)
+	{
+		for (int y = 0; y < pointCountY - 1; y++)
+		{
+			//Triangle part 1
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+
+			//Triangle part 2
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			vertIndex++;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			vertIndex++;
+			vertices[vertIndex] = 0.f;
+			vertIndex++;
+		}
+	}
+
+	glGenBuffers(1, &m_GridMeshVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
+
+	delete[] vertices;
+	delete[] point;
+}
+
 void Renderer::DrawMidTerm()
 {
 	GLuint shader = m_MidTermShader;
@@ -1239,4 +1365,20 @@ void Renderer::DrawMidTerm()
 	glBindTexture(GL_TEXTURE_2D, m_testVBO);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void Renderer::DrawGridMesh()
+{
+	GLuint shader = m_GridMeshShader;
+	glUseProgram(shader);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	GLuint posLoc = glGetAttribLocation(shader, "a_Position");
+	glEnableVertexAttribArray(posLoc);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
+	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glDrawArrays(GL_LINE_STRIP, 0, m_GridMeshVertexCount);
 }

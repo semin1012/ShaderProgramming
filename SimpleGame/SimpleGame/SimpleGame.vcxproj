@@ -177,6 +177,8 @@
     <None Include="Shaders\AlphaClear.vs" />
     <None Include="Shaders\FragmentSandbox.fs" />
     <None Include="Shaders\FragmentSandbox.vs" />
+    <None Include="Shaders\GridMesh.fs" />
+    <None Include="Shaders\GridMesh.vs" />
     <None Include="Shaders\MidTermVS.fs" />
     <None Include="Shaders\MidTermVS.vs" />
     <None Include="Shaders\Particle.fs" />
