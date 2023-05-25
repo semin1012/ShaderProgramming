@@ -26,6 +26,7 @@ public:
 	void CreateGridMesh();
 	void DrawMidTerm();
 	void DrawGridMesh();
+	void CreateFBOs();
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -96,6 +97,13 @@ private:
 	GLuint m_GridMeshVertexCount = 0;
 	GLuint m_GridMeshVBO = 0;
 	GLuint m_GridMeshShader = 0;
+
+	// FBO
+	GLuint m_AFBOTexture = 0;
+	GLuint m_BFBOTexture = 0;
+	GLuint m_CFBOTexture = 0;
+	GLuint m_DepthRenderBuffer = 0;
+	GLuint m_A_FBO = 0;
 
 	bool m_Initialized = false;
 	
