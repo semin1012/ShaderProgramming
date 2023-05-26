@@ -96,7 +96,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	// Create Textures
 	CreateTextures();
 	// Load Textures
-	m_RGBTexture = CreatePngTexture("./rgb.png", GL_NEAREST);
+	m_RGBTexture = CreatePngTexture("./new.png", GL_NEAREST);
 	m_0Texture = CreatePngTexture("./Textures/0.png", GL_NEAREST);
 	m_1Texture = CreatePngTexture("./Textures/1.png", GL_NEAREST);
 	m_2Texture = CreatePngTexture("./Textures/2.png", GL_NEAREST);
@@ -1282,8 +1282,8 @@ void Renderer::CreateGridMesh()
 
 	// 버텍스를 부드럽게 하려면 밑의 숫자를 높이면 된다.
 	// 프래그먼트 셰이더를 움직이는 것보다 계산량은 훨씬 적다.
-	int pointCountX = 8;
-	int pointCountY = 8;
+	int pointCountX = 64;
+	int pointCountY = 64;
 	//int pointCountX = 64;
 	//int pointCountY = 64;
 
@@ -1293,6 +1293,8 @@ void Renderer::CreateGridMesh()
 	float* point = new float[pointCountX * pointCountY * 2];
 	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
 	m_GridMeshVertexCount = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
+
+	GLuint shader = m_GridMeshShader;
 
 	//Prepare points
 	for (int x = 0; x < pointCountX; x++)
@@ -1351,7 +1353,6 @@ void Renderer::CreateGridMesh()
 			vertIndex++;
 		}
 	}
-
 	glGenBuffers(1, &m_GridMeshVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
@@ -1373,6 +1374,8 @@ void Renderer::DrawMidTerm()
 	glBindTexture(GL_TEXTURE_2D, m_testVBO);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
 }
 
 void Renderer::DrawGridMesh()
@@ -1388,7 +1391,20 @@ void Renderer::DrawGridMesh()
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
 	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	glDrawArrays(GL_LINE_STRIP, 0, m_GridMeshVertexCount);
+	glDrawArrays(GL_TRIANGLES, 0, m_GridMeshVertexCount);
+
+	GLuint timeULoc = glGetUniformLocation(shader, "u_Time");
+	glUniform1f(timeULoc, g_time);
+	g_time += 0.0005;
+
+
+	int uniformLoc_Texture = -1;
+	uniformLoc_Texture = glGetUniformLocation(shader, "u_Texture");
+	glUniform1f(uniformLoc_Texture, 0);
+	glActiveTexture(GL_TEXTURE0); 
+	//glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+
 }
 
 void Renderer::CreateFBOs()
