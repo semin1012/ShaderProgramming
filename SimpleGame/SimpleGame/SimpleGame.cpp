@@ -32,10 +32,10 @@ void RenderScene(void)
 
 	// Renderer Test
 	//g_Renderer->DrawSolidRect(0, 0, 0, 4, 1, 0, 1, 1);
-	//g_Renderer->DrawVertexSandbox();
+	g_Renderer->DrawVertexSandbox();
 	g_Renderer->DrawParticleEffect();
 	//g_Renderer->DrawFragmentSandbox();   
-	//g_Renderer->DrawTextureSandbox();
+	g_Renderer->DrawTextureSandbox();
 	//g_Renderer->DrawMidTerm();
 	//g_Renderer->DrawGridMesh();
 	//g_Renderer->DrawTexture(50, 50, 1, 1, 0);
