@@ -57,6 +57,7 @@ void GraphSin()
 
 void main()
 {
+
 	GraphSin();
 
 	v_UV = a_UV;

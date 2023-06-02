@@ -27,6 +27,7 @@ public:
 	void DrawMidTerm();
 	void DrawGridMesh();
 	void CreateFBOs();
+	void DrawTexture(float x, float y, float scaleX, float scaleY, GLuint texID);
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -104,6 +105,14 @@ private:
 	GLuint m_CFBOTexture = 0;
 	GLuint m_DepthRenderBuffer = 0;
 	GLuint m_A_FBO = 0;
+
+	//GLuint m_AFBOTexture = 0;
+	GLuint m_AFBOAttach_1_Texture = 0;
+	GLuint m_AFBOAttach_2_Texture = 0;
+	GLuint m_AFBOAttach_3_Texture = 0;
+	GLuint m_AFBOAttach_4_Texture = 0;
+	GLuint m_DrawTextureVBO = 0;
+	GLuint m_DrawTextureShader = 0;
 
 	bool m_Initialized = false;
 	

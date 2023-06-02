@@ -31,6 +31,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_TextureSandboxShader = CompileShaders("./Shaders/TextureSandboxShader.vs", "./Shaders/TextureSandboxShader.fs");
 	m_MidTermShader = CompileShaders("./Shaders/MidTermVS.vs", "./Shaders/MidTermVS.fs");
 	m_GridMeshShader = CompileShaders("./Shaders/GridMesh.vs", "./Shaders/GridMesh.fs");
+	m_DrawTextureShader = CompileShaders("./Shaders/DrawTexture.vs", "./Shaders/DrawTexture.fs");
 
 	//Create VBOs
 	CreateVertexBufferObjects();
@@ -109,10 +110,30 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_ParticleTexture = CreatePngTexture("./particle.png", GL_NEAREST);
 	m_ExplosionTexture = CreatePngTexture("./Textures/explosion.png", GL_NEAREST);
 
+
 	CreateGridMesh();
 
 	//Create FBOs
 	CreateFBOs();
+
+	float sizeX = 1.f / m_WindowSizeX;
+	float sizeY = 1.f / m_WindowSizeY;
+
+	float drawTextureRect[] =
+	{
+	-sizeX, sizeY, 0.f,     0.f, 0.f, //x, y, z, tx, ty
+	-sizeX, -sizeY, 0.f,    0.f, 1.f,
+	sizeX, sizeY, 0.f,     1.f, 0.f, //Triangle1
+	sizeX, sizeY, 0.f,     1.f, 0.f,
+	-sizeX, -sizeY, 0.f,    0.f, 1.f,
+	sizeX, -sizeY, 0.f,    1.f, 1.f //Triangle2 
+	};
+
+	glGenBuffers(1, &m_DrawTextureVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_DrawTextureVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(drawTextureRect), drawTextureRect, GL_STATIC_DRAW);
+
+
 }
 
 bool Renderer::IsInitialized()
@@ -333,7 +354,7 @@ void Renderer::Class0310()
 void Renderer::CreateParticle(int numParticles)
 {
 	float centerX, centerY;
-	float size = 0.1;
+	float size = 0.01;
 	int particleCount = numParticles;
 	m_ParticleVerticesCount = particleCount * 6;
 	int floatCount = particleCount * 6 * 3;		// x, y, z per vertex
@@ -943,63 +964,78 @@ void Renderer::Class0310_Render()
 	glDrawArrays(GL_TRIANGLES, 0, 3);	// 삼각형, 인덱스 시작점, 몇 개 그릴 것이냐
 	// 어트리뷰트 각각은 독립적으로 실행된다. 0번 어트리뷰트, 1번 어트리뷰트 각각 0~3개를 가지고 온다는 뜻
 }
-
 void Renderer::DrawParticleEffect()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_A_FBO);
+	GLenum drawBuffers[5] = { GL_COLOR_ATTACHMENT0,
+		GL_COLOR_ATTACHMENT1,
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3,
+		GL_COLOR_ATTACHMENT4
+	};
+	glDrawBuffers(5, drawBuffers);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(1, 1, 1, 0);
+	glViewport(0, 0, 512, 512);
+
+
 	//Program select
 	int program = m_ParticleShader;
 	glUseProgram(program);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// 구 오픈지엘은 컨텍스트에 관련해서는 불안정하다. 중요한 무언가가 Enable 되었으면 필요없어졌을 때 
-	// Enable 했던 놈을 꺼주는 게 좋다. 맨 뒤에 Disable 붙은 것 확인하기.
 
-	int attribLoc_Position = -1;
+	/*int attribLoc_Position = -1;
 	attribLoc_Position = glGetAttribLocation(program, "a_Position");
 	glEnableVertexAttribArray(attribLoc_Position);
-	/*glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
-	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);*/
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVBO);
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	int attribLoc_Color = -1;
 	attribLoc_Color = glGetAttribLocation(program, "a_Color");
 	glEnableVertexAttribArray(attribLoc_Color);
-	/*glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColor);
-	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);*/
-
-	// Position + Color
-	//glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePositionColorVBO);
-	//glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
-	//glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(sizeof(float)*3));
-	// 바인드는 한 번만 해도 된다. 바인드 한 번만 하고 두번에 나누어 들어감.
-
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleColorVBO);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	*/
+	int attribLoc_Position = -1;
+	attribLoc_Position = glGetAttribLocation(program, "a_Position");
+	int attribLoc_Color = -1;
+	attribLoc_Color = glGetAttribLocation(program, "a_Color");
 	int attribLoc_Vel = -1;
 	attribLoc_Vel = glGetAttribLocation(program, "a_Vel");
-	glEnableVertexAttribArray(attribLoc_Vel);
-	//glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
-	//glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// Position + Color + Vel
-
 	int attribLoc_UV = -1;
 	attribLoc_UV = glGetAttribLocation(program, "a_UV");
+	glEnableVertexAttribArray(attribLoc_Position);
+	glEnableVertexAttribArray(attribLoc_Color);
+	glEnableVertexAttribArray(attribLoc_Vel);
 	glEnableVertexAttribArray(attribLoc_UV);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticlePosColorVelUVVBO);
-	// 바인드는 한 번만 해도 된다. 바인드 한 번만 하고 세 번에 나누어 들어감.
-	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 12, 0);
-	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 3));
-	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 7));
-	glVertexAttribPointer(attribLoc_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (GLvoid*)(sizeof(float) * 10));
-	// x, y, z, r, g, b, a, vx, vy, vz 총 열 개
+	glVertexAttribPointer(attribLoc_Position, 3, GL_FLOAT,
+		GL_FALSE, sizeof(float) * 12, 0);
+	glVertexAttribPointer(attribLoc_Color, 4, GL_FLOAT,
+		GL_FALSE, sizeof(float) * 12,
+		(GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT,
+		GL_FALSE, sizeof(float) * 12,
+		(GLvoid*)(sizeof(float) * 7));
+	glVertexAttribPointer(attribLoc_UV, 2, GL_FLOAT,
+		GL_FALSE, sizeof(float) * 12,
+		(GLvoid*)(sizeof(float) * 10));
 
-
+	/*int attribLoc_Vel = -1;
+	attribLoc_Vel = glGetAttribLocation(program, "a_Vel");
+	glEnableVertexAttribArray(attribLoc_Vel);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleVelVBO);
+	glVertexAttribPointer(attribLoc_Vel, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	*/
 	int attribLoc_EmitTime = -1;
 	attribLoc_EmitTime = glGetAttribLocation(program, "a_EmitTime");
 	glEnableVertexAttribArray(attribLoc_EmitTime);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleEmitTimeVBO);
 	glVertexAttribPointer(attribLoc_EmitTime, 1, GL_FLOAT, GL_FALSE, 0, 0);
-	// 이건 하나의 버텍스 당 float (시간) 하나가 필요하기 때문에 3이 아닌 1을 넣는다. 
-	// 3을 넣으면 작은 어레이를 초과되게 참조하기 때문에 프로그램 죽는다.
 
 	int attribLoc_LifeTime = -1;
 	attribLoc_LifeTime = glGetAttribLocation(program, "a_LifeTime");
@@ -1007,17 +1043,17 @@ void Renderer::DrawParticleEffect()
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleLifeTimeVBO);
 	glVertexAttribPointer(attribLoc_LifeTime, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
-	int attribLoc_Amp = -1;
-	attribLoc_Amp = glGetAttribLocation(program, "a_Amp");
-	glEnableVertexAttribArray(attribLoc_Amp);
-	glBindBuffer(GL_ARRAY_BUFFER, m_SinAmp);
-	glVertexAttribPointer(attribLoc_Amp, 1, GL_FLOAT, GL_FALSE, 0, 0);
-
 	int attribLoc_Period = -1;
 	attribLoc_Period = glGetAttribLocation(program, "a_Period");
 	glEnableVertexAttribArray(attribLoc_Period);
-	glBindBuffer(GL_ARRAY_BUFFER, m_SinPeriod);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleLifeTimeVBO);
 	glVertexAttribPointer(attribLoc_Period, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+	int attribLoc_Amp = -1;
+	attribLoc_Amp = glGetAttribLocation(program, "a_Amp");
+	glEnableVertexAttribArray(attribLoc_Amp);
+	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleEmitTimeVBO);
+	glVertexAttribPointer(attribLoc_Amp, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
 	int attribLoc_Value = -1;
 	attribLoc_Value = glGetAttribLocation(program, "a_Value");
@@ -1025,22 +1061,29 @@ void Renderer::DrawParticleEffect()
 	glBindBuffer(GL_ARRAY_BUFFER, m_ParticleValue);
 	glVertexAttribPointer(attribLoc_Value, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
+
 	int uniformLoc_Time = -1;
 	uniformLoc_Time = glGetUniformLocation(program, "u_Time");
 	glUniform1f(uniformLoc_Time, g_time);
-	g_time += 0.0001;
+	g_time += 0.0001f;
 
-	int texULoc = glGetUniformLocation(program, "fu_Texture");
+	int texULoc = glGetUniformLocation(program, "u_Texture");
 	glUniform1i(texULoc, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_ParticleTexture);
 
+
 	glDrawArrays(GL_TRIANGLES, 0, m_ParticleVerticesCount);
 
-	glDisable(GL_BLEND);
-	// 꼼꼼하게 Diabal 시켜 줘야 좋다.
-}
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	DrawTexture(-0.75, -0.75, 128, 128, m_AFBOTexture);
+	DrawTexture(-0.25, -0.75, 128, 128, m_AFBOAttach_1_Texture);
+	DrawTexture(0.25, -0.75, 128, 128, m_AFBOAttach_2_Texture);
+	DrawTexture(0.75, -0.75, 128, 128, m_AFBOAttach_3_Texture);
+
+	glDisable(GL_BLEND);
+}
 void Renderer::DrawFragmentSandbox()
 {
 	//glBindFramebuffer(GL_FRAMEBUFFER, m_A_FBO);
@@ -1407,54 +1450,212 @@ void Renderer::DrawGridMesh()
 
 }
 
-void Renderer::CreateFBOs()
-{
-	GLuint m_AFBOTexture = 0;
-	GLuint m_BFBOTexture = 0;
-	GLuint m_CFBOTexture = 0;
-
+void Renderer::CreateFBOs() {
 	glGenTextures(1, &m_AFBOTexture);
+
 	glBindTexture(GL_TEXTURE_2D, m_AFBOTexture);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	glGenTextures(1, &m_AFBOAttach_1_Texture);
+
+	glBindTexture(GL_TEXTURE_2D, m_AFBOAttach_1_Texture);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	glGenTextures(1, &m_AFBOAttach_2_Texture);
+
+	glBindTexture(GL_TEXTURE_2D, m_AFBOAttach_2_Texture);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	glGenTextures(1, &m_AFBOAttach_3_Texture);
+
+	glBindTexture(GL_TEXTURE_2D, m_AFBOAttach_3_Texture);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	glGenTextures(1, &m_AFBOAttach_4_Texture);
+
+	glBindTexture(GL_TEXTURE_2D, m_AFBOAttach_4_Texture);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+
+
+
 
 	glGenTextures(1, &m_BFBOTexture);
+
 	glBindTexture(GL_TEXTURE_2D, m_BFBOTexture);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+
 
 	glGenTextures(1, &m_CFBOTexture);
+
 	glBindTexture(GL_TEXTURE_2D, m_CFBOTexture);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
+
+
 	glGenRenderbuffers(1, &m_DepthRenderBuffer);
+
 	glBindRenderbuffer(GL_RENDERBUFFER, m_DepthRenderBuffer);
+
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512, 512);
+
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+
+
 	glGenFramebuffers(1, &m_A_FBO);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, m_A_FBO);
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_AFBOTexture, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_AFBOAttach_1_Texture, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_AFBOAttach_2_Texture, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_AFBOAttach_3_Texture, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_AFBOAttach_4_Texture, 0);
+
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthRenderBuffer);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) 
+
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+
 	{
+
 		std::cout << "fbo creation failed" << std::endl;
+
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+
+void Renderer::DrawTexture(float x, float y, float scaleX, float scaleY, GLuint texID)
+
+{
+
+	GLuint shader = m_DrawTextureShader;
+
+	glUseProgram(shader);
+
+
+
+	GLuint posLoc = glGetAttribLocation(shader, "a_Position");
+
+	glEnableVertexAttribArray(posLoc);
+
+	GLuint texLoc = glGetAttribLocation(shader, "a_TexPos");
+
+	glEnableVertexAttribArray(texLoc);
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_DrawTextureVBO);
+
+	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+
+	glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+
+
+	GLuint samplerULoc = glGetUniformLocation(shader, "u_TexSampler");
+
+	glUniform1i(samplerULoc, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+
+
+	GLuint posScaleULoc = glGetUniformLocation(shader, "u_PosScale");
+
+	glUniform4f(posScaleULoc, x, y, scaleX, scaleY);
+
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+}
+
